@@ -49,7 +49,7 @@ KEY to compare elements."
       (values nil nil)
       (let ((elt (node-elt btree)))
 	(if (eql obj elt)
-	    (values (funcall key (node-elt btree)) t)
+	    (values (node-elt btree) t)
 	    (if (funcall predicate (funcall key obj) (funcall key elt))
 		(btree-find obj (node-l btree) predicate :key key)
 		(btree-find obj (node-r btree) predicate :key key))))))
