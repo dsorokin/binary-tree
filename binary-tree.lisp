@@ -42,71 +42,71 @@
 		      (format s "BTREE ~s" (node-elt n))))))
   color elt (l nil) (r nil))
 
-(defun btree-find (obj btree predicate &key (key #'identity))
-  "Find the object in the binary tree using the specified PREDICATE and 
-KEY to compare elements."
+(defun btree-find (obj btree predicate &key (key #'identity) (test #'eql))
+  "Find the object in the binary tree using the specified PREDICATE,  
+KEY and TEST to compare elements."
   (if (null btree)
       (values nil nil)
       (let ((elt (node-elt btree)))
-	(if (eql obj elt)
+	(if (funcall test obj (funcall key elt))
 	    (values (node-elt btree) t)
 	    (if (funcall predicate (funcall key obj) (funcall key elt))
 		(btree-find obj (node-l btree) predicate :key key)
 		(btree-find obj (node-r btree) predicate :key key))))))
 
-(defun btree-insert (obj btree predicate &key (key #'identity))
-  "Insert an object in the binary tree using the specified PREDICATE and 
-KEY to compare elements and then return a new binary tree. Tree BTREE
-doesn't change. It is treated as an immutable value."
-  (let ((n (%btree-insert obj btree predicate key)))
+(defun btree-insert (obj btree predicate &key (key #'identity) (test #'eql))
+  "Insert an object in the binary tree using the specified PREDICATE, 
+KEY and TEST to compare elements and then return a new binary tree. 
+Tree BTREE doesn't change. It is treated as an immutable value."
+  (let ((n (%btree-insert obj btree predicate key test)))
     (make-node :color :black 
 	       :elt (node-elt n)
 	       :l (node-l n) 
 	       :r (node-r n))))
 
-(defun btree-remove (obj btree predicate &key (key #'identity))
-  "Remove the object from the binary tree using the specified PREDICATE and
-KEY to compare elements and then return a new binary tree. Tree BTREE
-doesn't change. It is treated as an immutable value."
-  (let ((n (%btree-remove obj btree predicate key)))
+(defun btree-remove (obj btree predicate &key (key #'identity) (test #'eql))
+  "Remove the object from the binary tree using the specified PREDICATE,
+KEY and TEST to compare elements and then return a new binary tree. 
+Tree BTREE doesn't change. It is treated as an immutable value."
+  (let ((n (%btree-remove obj btree predicate key test)))
     (if n
 	(make-node :color :black
 		   :elt (node-elt n)
 		   :l (node-l n)
 		   :r (node-r n)))))
 
-(defun %btree-insert (obj btree predicate key)
+(defun %btree-insert (obj btree predicate key test)
   "A helper function to insert the object in the tree."
   (if (null btree)
       (make-node :color :red :elt obj :l nil :r nil)
       (let ((elt (node-elt btree)))
-	(if (eql obj elt)
+	(if (funcall test obj (funcall key elt))
 	    btree
 	    (if (funcall predicate (funcall key obj) (funcall key elt))
 		(balance-node (node-color btree) elt
 			      (%btree-insert obj (node-l btree) 
-					     predicate key)
+					     predicate key test)
 			      (node-r btree))
 		(balance-node (node-color btree) elt
 			      (node-l btree)
 			      (%btree-insert obj (node-r btree) 
-					     predicate key)))))))
+					     predicate key test)))))))
 
-(defun %btree-remove (obj btree predicate key)
+(defun %btree-remove (obj btree predicate key test)
   "A helper function to remove the object from the tree."
   (when btree
     (let ((elt (node-elt btree)))
-      (if (eql obj elt)
+      (if (funcall test obj (funcall key elt))
 	  (behead btree)
 	  (if (funcall predicate (funcall key obj) (funcall key elt))
 	      (balance-node (node-color btree) elt
 			    (%btree-remove obj (node-l btree)
-					   predicate key)
+					   predicate key test)
 			    (node-r btree))
 	      (balance-node (node-color btree) elt
 			    (node-l btree)
 			    (%btree-remove obj (node-r btree)
-					   predicate key)))))))
+					   predicate key test)))))))
 
 (defun behead (btree)
   "Behead the specified tree."
@@ -211,11 +211,11 @@ doesn't change. It is treated as an immutable value."
 	       btree)
     (nreverse list)))
 
-(defun list->btree (list predicate &key (key #'identity))
+(defun list->btree (list predicate &key (key #'identity) (test #'eql))
   "Return the binary tree by the specified list of elements."
   (let ((btree nil))
     (loop for item in list
-       do (setf btree (btree-insert item btree predicate :key key)))
+       do (setf btree (btree-insert item btree predicate :key key :test test)))
     btree))
 
 (defun btree-length (btree)
