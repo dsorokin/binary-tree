@@ -43,13 +43,13 @@
   color elt (l nil) (r nil))
 
 (defun btree-find (obj btree predicate &key (key #'identity))
-  "Find object OBJ in tree BTREE using the specified PREDICATE and 
+  "Find the object in the binary tree using the specified PREDICATE and 
 KEY to compare elements."
   (if (null btree)
-      nil
+      (values nil nil)
       (let ((elt (node-elt btree)))
 	(if (eql obj elt)
-	    btree
+	    (values (funcall key (node-elt btree)) t)
 	    (if (funcall predicate (funcall key obj) (funcall key elt))
 		(btree-find obj (node-l btree) predicate :key key)
 		(btree-find obj (node-r btree) predicate :key key))))))
