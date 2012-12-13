@@ -54,10 +54,10 @@
 		(btree-find obj-key (node-l btree) predicate :key key)
 		(btree-find obj-key (node-r btree) predicate :key key))))))
 
-(defun btree-insert (obj btree predicate &key (key #'identity) (test #'eql))
+(defun btree-insert (obj btree predicate &key (key #'identity) (test #'eql) (replaceable nil))
   "Insert an object in the binary tree and then return a new binary tree. 
 The source tree doesn't change. It is treated as an immutable value."
-  (let ((n (%btree-insert obj (funcall key obj) btree predicate key test)))
+  (let ((n (%btree-insert obj (funcall key obj) btree predicate key test replaceable)))
     (make-node :color :black 
 	       :elt (node-elt n)
 	       :l (node-l n) 
@@ -74,23 +74,28 @@ an immutable value."
 		   :l (node-l n)
 		   :r (node-r n)))))
 
-(defun %btree-insert (obj obj-key btree predicate key test)
+(defun %btree-insert (obj obj-key btree predicate key test replaceable)
   "A helper function to insert the object in the tree."
   (if (null btree)
       (make-node :color :red :elt obj :l nil :r nil)
       (let* ((elt (node-elt btree))
 	     (elt-key (funcall key elt)))
 	(if (funcall test obj-key elt-key)
-	    btree
+            (if (not replaceable)
+                btree
+              (make-node :color (node-color btree)
+                         :elt obj
+                         :l (node-l btree)
+                         :r (node-r btree)))
 	    (if (funcall predicate obj-key elt-key)
 		(balance-node (node-color btree) elt
 			      (%btree-insert obj obj-key (node-l btree) 
-					     predicate key test)
+					     predicate key test replaceable)
 			      (node-r btree))
 		(balance-node (node-color btree) elt
 			      (node-l btree)
 			      (%btree-insert obj obj-key (node-r btree) 
-					     predicate key test)))))))
+					     predicate key test replaceable)))))))
 
 (defun %btree-remove (obj-key btree predicate key test)
   "A helper function to remove the object from the tree."
