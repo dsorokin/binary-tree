@@ -20,6 +20,7 @@
   :version "0.1"
   :description "An immutable binary tree for Common Lisp."
   :licence "MIT"
+  :depends-on (:generic-sequences)
   :components ((:file "binary-tree")
                (:static-file "README")))
 

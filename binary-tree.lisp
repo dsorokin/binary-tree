@@ -20,18 +20,21 @@
 ;;;;  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (defpackage :binary-tree
-  (:use :cl)
+  (:use :cl :gen-seq)
   (:nicknames :btree)
   (:export
    #:btree-find
    #:btree-insert
    #:btree-remove
+   #:btree->seq
    #:btree->list
    #:list->btree
    #:btree-length
    #:btree-depth
    #:map-btree
-   #:reduce-btree))
+   #:reduce-btree
+   #:btree-equal
+   #:btree-compare))
 
 (in-package :binary-tree)
 
@@ -238,3 +241,30 @@ an immutable value."
       0
       (1+ (max (btree-depth (node-l btree))
 	       (btree-depth (node-r btree))))))
+
+(defun btree-enum (btree &key (key #'identity))
+  "Enumerate the elements of the binary tree."
+  (if (null btree)
+      nil
+    (enum-append
+     (btree-enum (node-l btree))
+     (enum-cons
+      (funcall key (node-elt btree))
+      (btree-enum (node-r btree))))))
+
+(defun btree->seq (btree &key (key #'identity))
+  "Return the sequence of elements of the binary tree."
+  (make-seq (btree-enum btree :key key)))
+
+(defun btree-equal (btree-1 btree-2 &key (test #'eql) (key #'identity))
+  "Test two binary trees for equality."
+  (seq-equal (btree->seq btree-1)
+             (btree->seq btree-2)
+             :test test :key key))
+   
+(defun btree-compare (btree-1 btree-2 test &key (key #'identity))
+  "Compare two binary trees."
+  (seq-compare (btree->seq btree-1)
+               (btree->seq btree-2)
+               test :key key))
+   
