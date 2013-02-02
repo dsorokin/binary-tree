@@ -54,8 +54,8 @@
 	(if (funcall test obj-key elt-key)
 	    (values (node-elt btree) t)
 	    (if (funcall predicate obj-key elt-key)
-		(btree-find obj-key (node-l btree) predicate :key key)
-		(btree-find obj-key (node-r btree) predicate :key key))))))
+		(btree-find obj-key (node-l btree) predicate :key key :test test)
+		(btree-find obj-key (node-r btree) predicate :key key :test test))))))
 
 (defun btree-insert (obj btree predicate &key (key #'identity) (test #'eql) (replaceable nil))
   "Insert an object in the binary tree and then return a new binary tree. 
