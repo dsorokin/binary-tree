@@ -1,4 +1,4 @@
-;;;;  Copyright (c) 2011 David Sorokin <david.sorokin@gmail.com>
+;;;;  Copyright (c) 2011, 2024 David Sorokin <david.sorokin@gmail.com>
 ;;;;
 ;;;;  Permission is hereby granted, free of charge, to any person
 ;;;;  obtaining a copy of this software and associated documentation files
@@ -17,7 +17,7 @@
 ;;;;  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (defsystem :binary-tree
-  :version "0.1"
+  :version "0.2"
   :description "An immutable binary tree for Common Lisp."
   :licence "MIT"
   :depends-on (:generic-sequences)

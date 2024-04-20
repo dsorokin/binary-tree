@@ -1,5 +1,5 @@
 ;;;; BINARY-TREE -- an immutable binary tree for Common Lisp
-;;;; by David Sorokin <david.sorokin@gmail.com>, 2011
+;;;; by David Sorokin <david.sorokin@gmail.com>, 2011, 2024
 ;;;;
 ;;;; Licence:
 ;;;;
@@ -31,6 +31,8 @@
    #:list->btree
    #:btree-length
    #:btree-depth
+   #:btree-min
+   #:btree-max
    #:map-btree
    #:reduce-btree
    #:btree-equal
@@ -106,7 +108,7 @@ an immutable value."
     (let* ((elt (node-elt btree))
 	   (elt-key (funcall key elt)))
       (if (funcall test obj-key elt-key)
-	  (behead btree)
+	  (behead btree predicate key test)
 	  (if (funcall predicate obj-key elt-key)
 	      (balance-node (node-color btree) elt
 			    (%btree-remove obj-key (node-l btree)
@@ -117,17 +119,34 @@ an immutable value."
 			    (%btree-remove obj-key (node-r btree)
 					   predicate key test)))))))
 
-(defun behead (btree)
+(defun btree-min (btree)
+  "The minimum element of the tree."
+  (when btree
+    (cond ((null (node-l btree))
+           (node-elt btree))
+          (t
+           (btree-min (node-l btree))))))
+
+(defun btree-max (btree)
+  "The maximum element of the tree."
+  (when btree
+    (cond ((null (node-r btree))
+           (node-elt btree))
+          (t
+           (btree-max (node-r btree))))))
+
+(defun behead (btree predicate key test)
   "Behead the specified tree."
   (cond ((null (node-l btree))
 	 (node-r btree))
 	((null (node-r btree))
 	 (node-l btree))
 	(t
-	 (balance-node (node-color (node-r btree))
-		       (node-elt (node-r btree))
-		       (node-l btree)
-		       (behead (node-r btree))))))
+	 (let ((min-elt (btree-min (node-r btree))))
+	   (balance-node (node-color btree)
+			 min-elt
+			 (node-l btree)
+			 (%btree-remove min-elt (node-r btree) predicate key test))))))
 
 (defun balance-node (color elt l r)
   "Return a balanced node with the specified initial parameters."
